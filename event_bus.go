@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-//BusSubscriber defines subscription-related bus behavior
+// BusSubscriber defines subscription-related bus behavior
 type BusSubscriber interface {
 	Subscribe(topic string, fn interface{}) error
 	SubscribeAsync(topic string, fn interface{}, transactional bool) error
@@ -15,18 +15,18 @@ type BusSubscriber interface {
 	Unsubscribe(topic string, handler interface{}) error
 }
 
-//BusPublisher defines publishing-related bus behavior
+// BusPublisher defines publishing-related bus behavior
 type BusPublisher interface {
 	Publish(topic string, args ...interface{})
 }
 
-//BusController defines bus control behavior (checking handler's presence, synchronization)
+// BusController defines bus control behavior (checking handler's presence, synchronization)
 type BusController interface {
 	HasCallback(topic string) bool
 	WaitAsync()
 }
 
-//Bus englobes global (subscribe, publish, control) bus behavior
+// Bus englobes global (subscribe, publish, control) bus behavior
 type Bus interface {
 	BusController
 	BusSubscriber
@@ -157,6 +157,11 @@ func (bus *EventBus) Publish(topic string, args ...interface{}) {
 
 func (bus *EventBus) doPublish(handler *eventHandler, topic string, args ...interface{}) {
 	passedArguments := bus.setUpPublish(handler, args...)
+	defer func() {
+		if e := recover(); e != nil {
+			fmt.Println("doPublish recovered:%s", e)
+		}
+	}()
 	handler.callBack.Call(passedArguments)
 }
 
